@@ -1,35 +1,47 @@
-import React from 'react';
+import React, { useState } from 'react';
+import StopBangQuestionnaire from './StopBangQuestionnaire'; // asegúrate de que la ruta sea correcta
 
 const NutritionDashboard = () => {
+  const [selected, setSelected] = useState(null);
+
   const questionnaires = [
     {
-      id: 1,
+      id: 'nutrition',
       title: "Evaluación",
-      description:
-        "Cuestionario completo sobre hábitos alimentarios, historial médico y preferencias dietéticas",
+      description: "Cuestionario completo sobre hábitos alimentarios, historial médico y preferencias dietéticas.",
       gradient: "from-violet-400 via-purple-500 to-indigo-600",
       pattern: "🥗",
       bgPattern: "bg-gradient-to-br from-violet-50 to-purple-100",
     },
     {
-      id: 2,
+      id: 'health',
       title: "Análisis de Salud",
-      description:
-        "Evaluación de condiciones médicas, alergias, intolerancias y factores de riesgo relacionados con la nutrición.",
+      description: "Evaluación de condiciones médicas, alergias, intolerancias y factores de riesgo relacionados con la nutrición.",
       gradient: "from-emerald-400 via-teal-500 to-cyan-600",
       pattern: "💚",
       bgPattern: "bg-gradient-to-br from-emerald-50 to-teal-100",
     },
     {
-      id: 3,
+      id: 'weight',
       title: "Control de Peso",
-      description:
-        "Seguimiento de objetivos de peso, medidas corporales y progreso en el plan nutricional establecido.",
+      description: "Seguimiento de objetivos de peso, medidas corporales y progreso en el plan nutricional establecido.",
       gradient: "from-orange-400 via-pink-500 to-rose-600",
       pattern: "⚖️",
       bgPattern: "bg-gradient-to-br from-orange-50 to-pink-100",
     },
+    {
+      id: 'stopbang',
+      title: "STOP-Bang",
+      description: "Cuestionario para evaluar el riesgo de apnea del sueño mediante preguntas clínicas clave.",
+      gradient: "from-blue-500 via-indigo-500 to-purple-600",
+      pattern: "😴",
+      bgPattern: "bg-gradient-to-br from-blue-50 to-indigo-100",
+    },
   ];
+
+  if (selected === 'stopbang') {
+    return <StopBangQuestionnaire />;
+  }
 
   return (
     <div className="min-h-screen w-full bg-white">
@@ -66,6 +78,7 @@ const NutritionDashboard = () => {
                 {q.description}
               </p>
               <button
+                onClick={() => setSelected(q.id)}
                 className={`w-full bg-gradient-to-r ${q.gradient} text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 transform group-hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden`}
               >
                 <span className="relative z-10">Iniciar Cuestionario</span>
@@ -75,18 +88,6 @@ const NutritionDashboard = () => {
               <div className="absolute bottom-8 right-8 w-8 h-8 bg-white/40 rounded-full opacity-40 group-hover:opacity-60 transition-opacity duration-300"></div>
             </div>
           ))}
-        </div>
-
-        {/* Footer */}
-        <div className="text-center">
-          <div className="inline-flex items-center px-8 py-4 bg-white/80 backdrop-blur-sm rounded-full shadow-lg border border-white/50">
-            <div className="flex items-center space-x-3">
-              <div className="relative">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                <div className="absolute inset-0 w-3 h-3 bg-green-400 rounded-full animate-ping opacity-75"></div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
