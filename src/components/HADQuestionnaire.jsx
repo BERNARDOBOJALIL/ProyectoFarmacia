@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle, AlertCircle, Download, ArrowLeft, Brain, Heart, Moon, Smile, Frown, Zap, Clock } from 'lucide-react';
+import { CheckCircle, AlertCircle, Download, ArrowLeft, Brain, Heart, Moon, Smile, Frown, Zap, Clock, User, Home } from 'lucide-react';
 
 const questions = [
   {
@@ -127,6 +127,26 @@ const HADQuestionnaire = () => {
   const [answers, setAnswers] = useState({});
   const [isComplete, setIsComplete] = useState(false);
   const [showResult, setShowResult] = useState(false);
+  const [showPatientInfo, setShowPatientInfo] = useState(true);
+  const [patientInfo, setPatientInfo] = useState({
+    name: '',
+    age: '',
+    gender: ''
+  });
+
+  const handlePatientInfoSubmit = (e) => {
+    e.preventDefault();
+    if (patientInfo.name.trim() && patientInfo.age.trim() && patientInfo.gender) {
+      setShowPatientInfo(false);
+    }
+  };
+
+  const handlePatientInfoChange = (field, value) => {
+    setPatientInfo(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   const handleAnswer = (value) => {
     const currentId = questions[current].id;
@@ -161,18 +181,8 @@ const HADQuestionnaire = () => {
     
     return { anxietyScore, depressionScore };
   };
-
   const getScoreLevel = (score, type) => {
-    if (score <= 7) {
-      return { 
-        level: 'Normal', 
-        color: 'text-green-600', 
-        bg: 'bg-green-50', 
-        border: 'border-green-200',
-        description: `Sin signos clínicamente significativos de ${type}`
-      };
-    }
-    if (score <= 10) {
+    if (score <= 8) {
       return { 
         level: 'Leve', 
         color: 'text-yellow-600', 
@@ -181,7 +191,7 @@ const HADQuestionnaire = () => {
         description: `${type} leve`
       };
     }
-    if (score <= 14) {
+    if (score <= 10) {
       return { 
         level: 'Moderado', 
         color: 'text-orange-600', 
@@ -191,20 +201,22 @@ const HADQuestionnaire = () => {
       };
     }
     return { 
-      level: 'Severo', 
+      level: 'Alto', 
       color: 'text-red-600', 
       bg: 'bg-red-50', 
       border: 'border-red-200',
-      description: `${type} severa`
+      description: `${type} alta`
     };
   };
-
   const downloadCSV = () => {
     const { anxietyScore, depressionScore } = calculateScores();
     const anxietyLevel = getScoreLevel(anxietyScore, 'ansiedad');
     const depressionLevel = getScoreLevel(depressionScore, 'depresión');
     
     const data = { 
+      patient_name: patientInfo.name,
+      patient_age: patientInfo.age,
+      patient_gender: patientInfo.gender,
       ...answers, 
       anxiety_score: anxietyScore,
       depression_score: depressionScore,
@@ -229,12 +241,21 @@ const HADQuestionnaire = () => {
       setCurrent(current - 1);
     }
   };
-
   const restart = () => {
     setCurrent(0);
     setAnswers({});
     setIsComplete(false);
     setShowResult(false);
+    setShowPatientInfo(true);
+    setPatientInfo({
+      name: '',
+      age: '',
+      gender: ''
+    });
+  };
+
+  const goBackToHome = () => {
+    window.location.reload(); // Esto volverá al dashboard principal
   };
 
   const progress = Math.round(((current + 1) / questions.length) * 100);
@@ -244,17 +265,106 @@ const HADQuestionnaire = () => {
 
   const currentOptions = questions[current]?.reverse ? reverseAnswerOptions : answerOptions;
 
+  // Formulario de información del paciente
+  if (showPatientInfo) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="max-w-2xl w-full">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 space-y-8">
+            <div className="text-center space-y-4">
+              <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
+                <User className="w-10 h-10 text-purple-600" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-800">Información del Paciente</h1>
+              <p className="text-gray-600">Por favor, complete la siguiente información antes de comenzar el cuestionario HAD</p>
+            </div>
+
+            <form onSubmit={handlePatientInfoSubmit} className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                    Nombre completo *
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    value={patientInfo.name}
+                    onChange={(e) => handlePatientInfoChange('name', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                    placeholder="Ingrese su nombre completo"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-2">
+                    Edad *
+                  </label>
+                  <input
+                    type="number"
+                    id="age"
+                    value={patientInfo.age}
+                    onChange={(e) => handlePatientInfoChange('age', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                    placeholder="Ingrese su edad"
+                    min="1"
+                    max="120"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
+                    Género *
+                  </label>
+                  <select
+                    id="gender"
+                    value={patientInfo.gender}
+                    onChange={(e) => handlePatientInfoChange('gender', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                    required
+                  >
+                    <option value="">Seleccione su género</option>
+                    <option value="masculino">Masculino</option>
+                    <option value="femenino">Femenino</option>
+                    <option value="otro">Otro</option>
+                    <option value="prefiero_no_decir">Prefiero no decir</option>
+                  </select>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold py-4 px-8 rounded-2xl hover:from-purple-700 hover:to-purple-800 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              >
+                Comenzar Cuestionario
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (showResult) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 flex items-center justify-center p-4">
         <div className="max-w-4xl w-full">
-          <div className="bg-white rounded-3xl shadow-2xl p-8 space-y-8 animate-fade-in">
-            <div className="text-center space-y-4">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 space-y-8 animate-fade-in">            <div className="text-center space-y-4">
               <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle className="w-10 h-10 text-purple-600" />
               </div>
               <h1 className="text-3xl font-bold text-gray-800">¡Cuestionario HAD Completado!</h1>
               <p className="text-gray-600">Resultados de la Escala Hospitalaria de Ansiedad y Depresión</p>
+              
+              {/* Información del paciente */}
+              <div className="bg-gray-50 rounded-xl p-4 mt-4">
+                <p className="text-sm text-gray-600">
+                  <strong>Paciente:</strong> {patientInfo.name} | 
+                  <strong> Edad:</strong> {patientInfo.age} años | 
+                  <strong> Género:</strong> {patientInfo.gender}
+                </p>
+              </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
@@ -313,21 +423,18 @@ const HADQuestionnaire = () => {
               <h4 className="font-semibold text-gray-800 flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-purple-600" />
                 Interpretación de Resultados
-              </h4>
-              <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600">
+              </h4>              <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600">
                 <div>
                   <p className="font-medium mb-2">Puntuación de Ansiedad:</p>
-                  <p><strong>• 0-7:</strong> Normal</p>
-                  <p><strong>• 8-10:</strong> Ansiedad leve</p>
-                  <p><strong>• 11-14:</strong> Ansiedad moderada</p>
-                  <p><strong>• 15-21:</strong> Ansiedad severa</p>
+                  <p><strong>• 0-8:</strong> Leve</p>
+                  <p><strong>• 9-10:</strong> Moderada</p>
+                  <p><strong>• 11-21:</strong> Alta</p>
                 </div>
                 <div>
                   <p className="font-medium mb-2">Puntuación de Depresión:</p>
-                  <p><strong>• 0-7:</strong> Normal</p>
-                  <p><strong>• 8-10:</strong> Depresión leve</p>
-                  <p><strong>• 11-14:</strong> Depresión moderada</p>
-                  <p><strong>• 15-21:</strong> Depresión severa</p>
+                  <p><strong>• 0-8:</strong> Leve</p>
+                  <p><strong>• 9-10:</strong> Moderada</p>
+                  <p><strong>• 11-21:</strong> Alta</p>
                 </div>
               </div>
               <div className="mt-4 p-4 bg-purple-50 rounded-xl">
@@ -336,9 +443,7 @@ const HADQuestionnaire = () => {
                   Los resultados deben ser interpretados por un profesional de la salud mental.
                 </p>
               </div>
-            </div>
-
-            <div className="flex gap-4">
+            </div>            <div className="flex gap-4">
               <button
                 onClick={downloadCSV}
                 className="flex-1 bg-purple-600 text-white px-6 py-4 rounded-2xl hover:bg-purple-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
@@ -351,6 +456,13 @@ const HADQuestionnaire = () => {
                 className="flex-1 bg-gray-600 text-white px-6 py-4 rounded-2xl hover:bg-gray-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
               >
                 Reiniciar Cuestionario
+              </button>
+              <button
+                onClick={goBackToHome}
+                className="flex-1 bg-blue-600 text-white px-6 py-4 rounded-2xl hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
+              >
+                <Home className="w-5 h-5" />
+                Volver al Inicio
               </button>
             </div>
           </div>
