@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import StopBangQuestionnaire from './StopBangQuestionnaire'; // asegúrate de que la ruta sea correcta
+import StopBangQuestionnaire from './StopBangQuestionnaire';
+import HADQuestionnaire from './HADQuestionnaire';
 
 const NutritionDashboard = () => {
   const [selected, setSelected] = useState(null);
@@ -37,10 +38,22 @@ const NutritionDashboard = () => {
       pattern: "😴",
       bgPattern: "bg-gradient-to-br from-blue-50 to-indigo-100",
     },
+    {
+      id: 'had',
+      title: "HAD",
+      description: "Escala Hospitalaria de Ansiedad y Depresión para evaluar el estado emocional del paciente.",
+      gradient: "from-purple-500 via-pink-500 to-rose-600",
+      pattern: "🧠",
+      bgPattern: "bg-gradient-to-br from-purple-50 to-pink-100",
+    },
   ];
 
   if (selected === 'stopbang') {
     return <StopBangQuestionnaire />;
+  }
+
+  if (selected === 'had') {
+    return <HADQuestionnaire />;
   }
 
   return (
@@ -61,7 +74,7 @@ const NutritionDashboard = () => {
         </div>
 
         {/* Cards Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-6xl mx-auto mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-10 max-w-7xl mx-auto mb-20">
           {questionnaires.map((q) => (
             <div
               key={q.id}
