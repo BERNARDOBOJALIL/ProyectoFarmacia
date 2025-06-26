@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Stethoscope, Moon, Brain, ArrowRight, FileText } from 'lucide-react';
+import { Stethoscope, Moon, Brain, ArrowRight, FileText, Utensils } from 'lucide-react';
 import StopBangQuestionnaire from './StopBangQuestionnaire';
 import HADQuestionnaire from './HADQuestionnaire';
+import TFEQQuestionnaire from './TFEQQuestionnaire';
 
 const NutritionDashboard = () => {
   const [selected, setSelected] = useState(null);
@@ -31,6 +32,18 @@ const NutritionDashboard = () => {
       iconBg: "bg-purple-50",
       iconColor: "text-purple-600",
     },
+    {
+      id: 'tfeq',
+      title: "TFEQ-R18",
+      description: "Inventario de Alimentación de Tres Factores para evaluar patrones de comportamiento alimentario.",
+      icon: Utensils,
+      gradient: "from-green-500 to-green-600",
+      hoverGradient: "from-green-600 to-green-700",
+      shadowColor: "shadow-green-500/20",
+      borderColor: "border-green-100",
+      iconBg: "bg-green-50",
+      iconColor: "text-green-600",
+    },
   ];
 
   if (selected === 'stopbang') {
@@ -39,6 +52,10 @@ const NutritionDashboard = () => {
 
   if (selected === 'had') {
     return <HADQuestionnaire />;
+  }
+
+  if (selected === 'tfeq') {
+    return <TFEQQuestionnaire />;
   }
 
   return (
