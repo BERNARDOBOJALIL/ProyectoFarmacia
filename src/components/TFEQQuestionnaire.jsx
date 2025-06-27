@@ -732,6 +732,25 @@ const TFEQQuestionnaire = () => {
     );
   }
 
+  const handleOptionTouch = (index, label, value) => {
+    if (focusedOption === index && lastTouchedOption === index) {
+      // Segundo toque: selecciona la opción
+      setLastTouchedOption(null);
+      setFocusedOption(null);
+      handleAnswer(value);
+    } else {
+      // Primer toque: lee la opción
+      setFocusedOption(index);
+      setLastTouchedOption(index);
+      speakText(label);
+      if (touchTimeout.current) clearTimeout(touchTimeout.current);
+      touchTimeout.current = setTimeout(() => {
+        setFocusedOption(null);
+        setLastTouchedOption(null);
+      }, 2000); // Reinicia después de 2 segundos
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Navigation Bar */}
