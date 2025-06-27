@@ -29,14 +29,16 @@ const StopBangQuestionnaire = () => {
     gender: '' 
   });
   const [accessibilityMode, setAccessibilityMode] = useState(false);
+  const [focusedOption, setFocusedOption] = useState(null); // Para feedback táctil
+  const [lastTouchedOption, setLastTouchedOption] = useState(null); // Para doble toque
   const synthRef = useRef(window.speechSynthesis);
   const utteranceRef = useRef(null);
+  const touchTimeout = useRef(null);
 
   // Detección de dispositivo móvil
   useEffect(() => {
     const checkMobile = () => {
-      const isMob = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.innerWidth <= 800 && window.innerHeight <= 600);
-      setIsMobile(isMob);
+      setIsMobile(window.innerWidth <= 768 || /Mobi|Android/i.test(navigator.userAgent));
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -452,20 +454,28 @@ const StopBangQuestionnaire = () => {
               {/* Opciones de respuesta */}
               <div className="flex gap-4">
                 <button
-                  onClick={() => handleAnswer('Yes')}
-                  className={`flex-1 bg-green-500 text-white px-8 py-4 rounded-2xl transition-all duration-300 transform shadow-lg hover:shadow-xl font-medium text-lg ${accessibilityMode ? 'text-2xl py-8 px-8 hover:scale-105' : 'hover:bg-green-600 hover:scale-105'}`}
-                  onMouseEnter={accessibilityMode ? () => speakText('Sí') : undefined}
-                  onMouseLeave={accessibilityMode ? () => synthRef.current.cancel() : undefined}
+                  onClick={() => (!accessibilityMode || !isMobile) ? handleAnswer('Yes') : undefined}
+                  onTouchStart={accessibilityMode && isMobile ? (e) => { e.preventDefault(); handleOptionTouch(0, 'Sí', 'Yes'); } : undefined}
+                  className={`flex-1 bg-green-500 text-white px-8 py-4 rounded-2xl transition-all duration-300 transform shadow-lg hover:shadow-xl font-medium text-lg ${accessibilityMode ? 'text-2xl py-8 px-8 hover:scale-105' : 'hover:bg-green-600 hover:scale-105'} ${accessibilityMode && isMobile && focusedOption === 0 ? 'ring-4 ring-yellow-400 scale-105 bg-yellow-400/80 text-green-900 font-extrabold' : ''}`}
+                  onMouseEnter={accessibilityMode && !isMobile ? () => speakText('Sí') : undefined}
+                  onMouseLeave={accessibilityMode && !isMobile ? () => synthRef.current.cancel() : undefined}
                 >
                   Sí
+                  {accessibilityMode && isMobile && focusedOption === 0 && (
+                    <span className="ml-2 text-yellow-900 text-base font-bold animate-pulse">(Toca de nuevo para seleccionar)</span>
+                  )}
                 </button>
                 <button
-                  onClick={() => handleAnswer('No')}
-                  className={`flex-1 bg-red-500 text-white px-8 py-4 rounded-2xl transition-all duration-300 transform shadow-lg hover:shadow-xl font-medium text-lg ${accessibilityMode ? 'text-2xl py-8 px-8 hover:scale-105' : 'hover:bg-red-600 hover:scale-105'}`}
-                  onMouseEnter={accessibilityMode ? () => speakText('No') : undefined}
-                  onMouseLeave={accessibilityMode ? () => synthRef.current.cancel() : undefined}
+                  onClick={() => (!accessibilityMode || !isMobile) ? handleAnswer('No') : undefined}
+                  onTouchStart={accessibilityMode && isMobile ? (e) => { e.preventDefault(); handleOptionTouch(1, 'No', 'No'); } : undefined}
+                  className={`flex-1 bg-red-500 text-white px-8 py-4 rounded-2xl transition-all duration-300 transform shadow-lg hover:shadow-xl font-medium text-lg ${accessibilityMode ? 'text-2xl py-8 px-8 hover:scale-105' : 'hover:bg-red-600 hover:scale-105'} ${accessibilityMode && isMobile && focusedOption === 1 ? 'ring-4 ring-yellow-400 scale-105 bg-yellow-400/80 text-red-900 font-extrabold' : ''}`}
+                  onMouseEnter={accessibilityMode && !isMobile ? () => speakText('No') : undefined}
+                  onMouseLeave={accessibilityMode && !isMobile ? () => synthRef.current.cancel() : undefined}
                 >
                   No
+                  {accessibilityMode && isMobile && focusedOption === 1 && (
+                    <span className="ml-2 text-yellow-900 text-base font-bold animate-pulse">(Toca de nuevo para seleccionar)</span>
+                  )}
                 </button>
               </div>
 

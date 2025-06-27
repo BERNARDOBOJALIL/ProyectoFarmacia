@@ -219,8 +219,11 @@ const TFEQQuestionnaire = () => {
     gender: ''
   });
   const [accessibilityMode, setAccessibilityMode] = useState(false);
+  const [focusedOption, setFocusedOption] = useState(null); // Para feedback táctil
+  const [lastTouchedOption, setLastTouchedOption] = useState(null); // Para doble toque
   const synthRef = useRef(window.speechSynthesis);
   const utteranceRef = useRef(null);
+  const touchTimeout = useRef(null);
 
   // Función para hablar la pregunta actual
   const speakQuestion = (text) => {
@@ -256,11 +259,10 @@ const TFEQQuestionnaire = () => {
     // eslint-disable-next-line
   }, [current, showPatientInfo, showResult, accessibilityMode]);
 
+  // Detección de dispositivo móvil
   useEffect(() => {
-    // Detección de dispositivo móvil
     const checkMobile = () => {
-      const isMob = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.innerWidth <= 800 && window.innerHeight <= 600);
-      setIsMobile(isMob);
+      setIsMobile(window.innerWidth <= 768 || /Mobi|Android/i.test(navigator.userAgent));
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -824,12 +826,16 @@ const TFEQQuestionnaire = () => {
               {currentOptions.map((option, index) => (
                 <button
                   key={index}
-                  onClick={() => handleAnswer(option.value)}
-                  className={`bg-green-500 text-white px-6 py-4 rounded-2xl transition-all duration-300 transform shadow-lg hover:shadow-xl font-medium text-lg ${accessibilityMode ? 'text-2xl py-8 px-8 hover:scale-105' : 'hover:bg-green-600 hover:scale-105'}`}
-                  onMouseEnter={accessibilityMode ? () => speakText(option.label) : undefined}
-                  onMouseLeave={accessibilityMode ? () => synthRef.current.cancel() : undefined}
+                  onClick={() => (!accessibilityMode || !isMobile) ? handleAnswer(option.value) : undefined}
+                  onTouchStart={accessibilityMode && isMobile ? (e) => { e.preventDefault(); handleOptionTouch(index, option.label, option.value); } : undefined}
+                  className={`bg-green-500 text-white px-6 py-4 rounded-2xl transition-all duration-300 transform shadow-lg hover:shadow-xl font-medium text-lg ${accessibilityMode ? 'text-2xl py-8 px-8 hover:scale-105' : 'hover:bg-green-600 hover:scale-105'} ${accessibilityMode && isMobile && focusedOption === index ? 'ring-4 ring-yellow-400 scale-105 bg-yellow-400/80 text-green-900 font-extrabold' : ''}`}
+                  onMouseEnter={accessibilityMode && !isMobile ? () => speakText(option.label) : undefined}
+                  onMouseLeave={accessibilityMode && !isMobile ? () => synthRef.current.cancel() : undefined}
                 >
                   {option.label}
+                  {accessibilityMode && isMobile && focusedOption === index && (
+                    <span className="ml-2 text-yellow-900 text-base font-bold animate-pulse">(Toca de nuevo para seleccionar)</span>
+                  )}
                 </button>
               ))}
             </div>
