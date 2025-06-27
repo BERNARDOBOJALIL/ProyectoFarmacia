@@ -272,6 +272,40 @@ const HADQuestionnaire = () => {
     synthRef.current.speak(utter);
   };
 
+  // --- ACCESIBILIDAD MÓVIL: Primer toque lee, segundo selecciona ---
+  const handleOptionTouch = (index, label, value) => {
+    if (focusedOption === index && lastTouchedOption === index) {
+      // Segundo toque en la misma opción: seleccionar
+      setFocusedOption(null);
+      setLastTouchedOption(null);
+      if (touchTimeout.current) {
+        clearTimeout(touchTimeout.current);
+        touchTimeout.current = null;
+      }
+      handleAnswer(value);
+    } else {
+      // Primer toque: enfocar y leer
+      setFocusedOption(index);
+      setLastTouchedOption(index);
+      speakText(label);
+      if (touchTimeout.current) clearTimeout(touchTimeout.current);
+      touchTimeout.current = setTimeout(() => {
+        setFocusedOption(null);
+        setLastTouchedOption(null);
+      }, 1500); // 1.5 segundos para segundo toque
+    }
+  };
+
+  // Detectar si es móvil (simple check)
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768 || /Mobi|Android/i.test(navigator.userAgent));
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Hablar la pregunta cada vez que cambie
   useEffect(() => {
     if (!showPatientInfo && !showResult && accessibilityMode) {
