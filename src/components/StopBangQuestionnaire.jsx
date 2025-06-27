@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   CheckCircle, AlertCircle, Download, ArrowLeft, Volume2,
   Coffee, Eye, Heart, Weight, Calendar, Ruler, User, Home, Moon
@@ -17,6 +17,7 @@ const questions = [
 ];
 
 const StopBangQuestionnaire = () => {
+  const [isMobile, setIsMobile] = useState(false);
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState({});
   const [isComplete, setIsComplete] = useState(false);
@@ -27,6 +28,54 @@ const StopBangQuestionnaire = () => {
     age: '', 
     gender: '' 
   });
+  const [accessibilityMode, setAccessibilityMode] = useState(false);
+  const synthRef = useRef(window.speechSynthesis);
+  const utteranceRef = useRef(null);
+
+  // Detección de dispositivo móvil
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMob = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.innerWidth <= 800 && window.innerHeight <= 600);
+      setIsMobile(isMob);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Función para hablar la pregunta actual
+  const speakQuestion = (text) => {
+    if (!('speechSynthesis' in window)) return;
+    if (synthRef.current.speaking) synthRef.current.cancel();
+    const utter = new window.SpeechSynthesisUtterance(text);
+    utter.lang = 'es-ES';
+    utter.rate = 1;
+    utter.pitch = 1;
+    utteranceRef.current = utter;
+    synthRef.current.speak(utter);
+  };
+
+  // Función para hablar texto genérico (usada para respuestas)
+  const speakText = (text) => {
+    if (!('speechSynthesis' in window)) return;
+    if (synthRef.current.speaking) synthRef.current.cancel();
+    const utter = new window.SpeechSynthesisUtterance(text);
+    utter.lang = 'es-ES';
+    utter.rate = 1;
+    utter.pitch = 1;
+    utteranceRef.current = utter;
+    synthRef.current.speak(utter);
+  };
+
+  useEffect(() => {
+    if (!showPatientInfo && !showResult && accessibilityMode) {
+      speakQuestion(questions[current].text);
+    }
+    return () => {
+      if (synthRef.current.speaking) synthRef.current.cancel();
+    };
+    // eslint-disable-next-line
+  }, [current, showPatientInfo, showResult, accessibilityMode]);
 
   const handlePatientInfoSubmit = (e) => {
     e.preventDefault();
@@ -108,33 +157,43 @@ const StopBangQuestionnaire = () => {
   // Formulario de información del paciente
   if (showPatientInfo) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex flex-col">
+      <div className="min-h-screen bg-white flex flex-col">
         {/* Navigation Bar */}
-        <div className="w-full bg-white shadow-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Moon className="w-5 h-5 text-blue-600" />
+        <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-6 py-6">
+            <div className="flex items-center justify-between min-h-[80px]">
+              <div className="flex items-center space-x-4">
+                <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Moon className="w-7 h-7 text-blue-600" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-semibold text-gray-800">Cuestionario STOP-Bang</h1>
-                  <p className="text-sm text-gray-500">Evaluación de riesgo de apnea del sueño</p>
+                  <h1 className="text-2xl font-bold text-gray-800">Cuestionario STOP-Bang</h1>
+                  <p className="text-base text-gray-500">Evaluación de riesgo de apnea del sueño</p>
                 </div>
               </div>
-              <button
-                onClick={goBackToHome}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all duration-300 font-medium"
-              >
-                <Home className="w-4 h-4" />
-                Volver al Inicio
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setAccessibilityMode((prev) => !prev)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 font-semibold text-lg shadow ${accessibilityMode ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                  title="Activar/desactivar accesibilidad"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m0 14v1m8-8h-1M5 12H4m15.07-6.93l-.71.71M6.34 17.66l-.71.71m12.02 0l-.71-.71M6.34 6.34l-.71-.71M12 8a4 4 0 100 8 4 4 0 000-8z" /></svg>
+                  {accessibilityMode ? 'Accesibilidad ON' : 'Accesibilidad OFF'}
+                </button>
+                <button
+                  onClick={goBackToHome}
+                  className="flex items-center gap-3 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl transition-all duration-300 font-semibold text-lg shadow"
+                >
+                  <Home className="w-6 h-6" />
+                  Volver al Inicio
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex items-center justify-center p-4">
+        <div className="flex-1 flex items-center justify-center p-4" style={{ paddingTop: '110px' }}>
           <div className="max-w-2xl w-full">
             <div className="bg-white rounded-3xl shadow-2xl p-8 space-y-8">
               <div className="text-center space-y-4">
@@ -214,33 +273,43 @@ const StopBangQuestionnaire = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Navigation Bar */}
-      <div className="w-full bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <Moon className="w-5 h-5 text-blue-600" />
+      <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between min-h-[80px]">
+            <div className="flex items-center space-x-4">
+              <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center">
+                <Moon className="w-7 h-7 text-blue-600" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-gray-800">Cuestionario STOP-Bang</h1>
-                <p className="text-sm text-gray-500">Evaluación de riesgo de apnea del sueño</p>
+                <h1 className="text-2xl font-bold text-gray-800">Cuestionario STOP-Bang</h1>
+                <p className="text-base text-gray-500">Evaluación de riesgo de apnea del sueño</p>
               </div>
             </div>
-            <button
-              onClick={goBackToHome}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all duration-300 font-medium"
-            >
-              <Home className="w-4 h-4" />
-              Volver al Inicio
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setAccessibilityMode((prev) => !prev)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 font-semibold text-lg shadow ${accessibilityMode ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                title="Activar/desactivar accesibilidad"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m0 14v1m8-8h-1M5 12H4m15.07-6.93l-.71.71M6.34 17.66l-.71.71m12.02 0l-.71-.71M6.34 6.34l-.71-.71M12 8a4 4 0 100 8 4 4 0 000-8z" /></svg>
+                {accessibilityMode ? 'Accesibilidad ON' : 'Accesibilidad OFF'}
+              </button>
+              <button
+                onClick={goBackToHome}
+                className="flex items-center gap-3 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl transition-all duration-300 font-semibold text-lg shadow"
+              >
+                <Home className="w-6 h-6" />
+                Volver al Inicio
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center p-4">
+      <div className="flex-1 flex items-center justify-center p-4" style={{ paddingTop: '110px' }}>
         {showResult ? (
           <div className="max-w-4xl w-full">
             <div className="bg-white rounded-3xl shadow-2xl p-8 space-y-8 animate-fade-in">
@@ -300,12 +369,8 @@ const StopBangQuestionnaire = () => {
                   <p><strong>• Riesgo Intermedio (3-4):</strong> Probabilidad intermedia de apnea del sueño</p>
                   <p><strong>• Riesgo Alto (5-8):</strong> Alta probabilidad de apnea del sueño</p>
                 </div>
-                <div className="mt-4 p-4 bg-blue-50 rounded-xl">
-                  <p className="text-sm text-blue-800 font-medium">
-                    <strong>Nota:</strong> Este cuestionario es una herramienta de evaluación. 
-                    Consulte con un profesional de la salud para un diagnóstico preciso.
-                  </p>
-                </div>
+                
+                
               </div>
 
               <div className="flex gap-4">
@@ -371,26 +436,40 @@ const StopBangQuestionnaire = () => {
                   <h2 className="text-xl font-semibold text-gray-800 leading-relaxed text-center">
                     {questions[current].text}
                   </h2>
+                  <div className="flex justify-center mt-2">
+                    <button
+                      type="button"
+                      onClick={() => speakQuestion(questions[current].text)}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 transition-all duration-300 text-sm font-medium shadow"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5L6 9H3v6h3l5 4V5z" /></svg>
+                      Escuchar pregunta
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              {/* Answer Buttons */}
+              {/* Opciones de respuesta */}
               <div className="flex gap-4">
                 <button
                   onClick={() => handleAnswer('Yes')}
-                  className="flex-1 bg-green-500 text-white px-8 py-4 rounded-2xl hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl font-medium text-lg"
+                  className={`flex-1 bg-green-500 text-white px-8 py-4 rounded-2xl transition-all duration-300 transform shadow-lg hover:shadow-xl font-medium text-lg ${accessibilityMode ? 'text-2xl py-8 px-8 hover:scale-105' : 'hover:bg-green-600 hover:scale-105'}`}
+                  onMouseEnter={accessibilityMode ? () => speakText('Sí') : undefined}
+                  onMouseLeave={accessibilityMode ? () => synthRef.current.cancel() : undefined}
                 >
                   Sí
                 </button>
                 <button
                   onClick={() => handleAnswer('No')}
-                  className="flex-1 bg-red-500 text-white px-8 py-4 rounded-2xl hover:bg-red-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl font-medium text-lg"
+                  className={`flex-1 bg-red-500 text-white px-8 py-4 rounded-2xl transition-all duration-300 transform shadow-lg hover:shadow-xl font-medium text-lg ${accessibilityMode ? 'text-2xl py-8 px-8 hover:scale-105' : 'hover:bg-red-600 hover:scale-105'}`}
+                  onMouseEnter={accessibilityMode ? () => speakText('No') : undefined}
+                  onMouseLeave={accessibilityMode ? () => synthRef.current.cancel() : undefined}
                 >
                   No
                 </button>
               </div>
 
-              {/* Navigation */}
+              {/* Navegación */}
               <div className="flex justify-between items-center">
                 <button
                   onClick={goBack}
@@ -404,7 +483,6 @@ const StopBangQuestionnaire = () => {
                   <ArrowLeft className="w-4 h-4" />
                   Anterior
                 </button>
-                
                 <div className="text-sm text-gray-500">
                   {Object.keys(answers).length} respuestas guardadas
                 </div>
@@ -413,7 +491,6 @@ const StopBangQuestionnaire = () => {
           </div>
         )}
       </div>
-
       <style jsx>{`
         @keyframes fade-in {
           from { opacity: 0; transform: translateY(20px); }

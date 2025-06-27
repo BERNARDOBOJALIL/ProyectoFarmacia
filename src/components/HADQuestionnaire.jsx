@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, AlertCircle, Download, ArrowLeft, Brain, Heart, Moon, Smile, Frown, Zap, Clock, User, Home } from 'lucide-react';
 
 const questions = [
@@ -239,6 +239,50 @@ const HADQuestionnaire = () => {
     age: '',
     gender: ''
   });
+  const [accessibilityMode, setAccessibilityMode] = useState(false);
+  const [focusedOption, setFocusedOption] = useState(null); // Para feedback táctil
+  const [lastTouchedOption, setLastTouchedOption] = useState(null); // Para doble toque
+  const touchTimeout = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  const synthRef = useRef(window.speechSynthesis);
+  const utteranceRef = useRef(null);
+
+  // Función para hablar la pregunta actual
+  const speakQuestion = (text) => {
+    if (!('speechSynthesis' in window)) return;
+    if (synthRef.current.speaking) synthRef.current.cancel();
+    const utter = new window.SpeechSynthesisUtterance(text);
+    utter.lang = 'es-ES';
+    utter.rate = 1;
+    utter.pitch = 1;
+    utteranceRef.current = utter;
+    synthRef.current.speak(utter);
+  };
+
+  // Función para hablar texto genérico (usada para respuestas)
+  const speakText = (text) => {
+    if (!('speechSynthesis' in window)) return;
+    if (synthRef.current.speaking) synthRef.current.cancel();
+    const utter = new window.SpeechSynthesisUtterance(text);
+    utter.lang = 'es-ES';
+    utter.rate = 1;
+    utter.pitch = 1;
+    utteranceRef.current = utter;
+    synthRef.current.speak(utter);
+  };
+
+  // Hablar la pregunta cada vez que cambie
+  useEffect(() => {
+    if (!showPatientInfo && !showResult && accessibilityMode) {
+      speakQuestion(questions[current].text);
+    }
+    setFocusedOption(null); // Reiniciar foco al cambiar pregunta
+    return () => {
+      if (synthRef.current.speaking) synthRef.current.cancel();
+    };
+    // eslint-disable-next-line
+  }, [current, showPatientInfo, showResult, accessibilityMode]);
 
   const handlePatientInfoSubmit = (e) => {
     e.preventDefault();
@@ -354,33 +398,43 @@ const HADQuestionnaire = () => {
   // Formulario de información del paciente
   if (showPatientInfo) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 flex flex-col">
+      <div className="min-h-screen bg-white flex flex-col">
         {/* Navigation Bar */}
-        <div className="w-full bg-white shadow-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                  <Brain className="w-5 h-5 text-purple-600" />
+        <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-6 py-6">
+            <div className="flex items-center justify-between min-h-[80px]">
+              <div className="flex items-center space-x-4">
+                <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center">
+                  <Brain className="w-7 h-7 text-purple-600" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-semibold text-gray-800">Cuestionario HAD</h1>
-                  <p className="text-sm text-gray-500">Evaluación de ansiedad y depresión</p>
+                  <h1 className="text-2xl font-bold text-gray-800">Cuestionario HAD</h1>
+                  <p className="text-base text-gray-500">Evaluación de ansiedad y depresión</p>
                 </div>
               </div>
-              <button
-                onClick={goBackToHome}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all duration-300 font-medium"
-              >
-                <Home className="w-4 h-4" />
-                Volver al Inicio
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setAccessibilityMode((prev) => !prev)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 font-semibold text-lg shadow ${accessibilityMode ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                  title="Activar/desactivar accesibilidad"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m0 14v1m8-8h-1M5 12H4m15.07-6.93l-.71.71M6.34 17.66l-.71.71m12.02 0l-.71-.71M6.34 6.34l-.71-.71M12 8a4 4 0 100 8 4 4 0 000-8z" /></svg>
+                  {accessibilityMode ? 'Accesibilidad ON' : 'Accesibilidad OFF'}
+                </button>
+                <button
+                  onClick={goBackToHome}
+                  className="flex items-center gap-3 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl transition-all duration-300 font-semibold text-lg shadow"
+                >
+                  <Home className="w-6 h-6" />
+                  Volver al Inicio
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex items-center justify-center p-4">
+        <div className="flex-1 flex items-center justify-center p-4" style={{ paddingTop: '110px' }}>
           <div className="max-w-2xl w-full">
             <div className="bg-white rounded-3xl shadow-2xl p-8 space-y-8">
               <div className="text-center space-y-4">
@@ -461,7 +515,7 @@ const HADQuestionnaire = () => {
 
   if (showResult) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 flex flex-col">
+      <div className="min-h-screen bg-white flex flex-col">
         {/* Navigation Bar */}
         <div className="w-full bg-white shadow-sm border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 py-3">
@@ -627,33 +681,43 @@ const HADQuestionnaire = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Navigation Bar */}
-      <div className="w-full bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                <Brain className="w-5 h-5 text-purple-600" />
+      <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between min-h-[80px]">
+            <div className="flex items-center space-x-4">
+              <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center">
+                <Brain className="w-7 h-7 text-purple-600" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-gray-800">Cuestionario HAD</h1>
-                <p className="text-sm text-gray-500">Evaluación de ansiedad y depresión</p>
+                <h1 className="text-2xl font-bold text-gray-800">Cuestionario HAD</h1>
+                <p className="text-base text-gray-500">Evaluación de ansiedad y depresión</p>
               </div>
             </div>
-            <button
-              onClick={goBackToHome}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all duration-300 font-medium"
-            >
-              <Home className="w-4 h-4" />
-              Volver al Inicio
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setAccessibilityMode((prev) => !prev)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 font-semibold text-lg shadow ${accessibilityMode ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                title="Activar/desactivar accesibilidad"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m0 14v1m8-8h-1M5 12H4m15.07-6.93l-.71.71M6.34 17.66l-.71.71m12.02 0l-.71-.71M6.34 6.34l-.71-.71M12 8a4 4 0 100 8 4 4 0 000-8z" /></svg>
+                {accessibilityMode ? 'Accesibilidad ON' : 'Accesibilidad OFF'}
+              </button>
+              <button
+                onClick={goBackToHome}
+                className="flex items-center gap-3 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl transition-all duration-300 font-semibold text-lg shadow"
+              >
+                <Home className="w-6 h-6" />
+                Volver al Inicio
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center p-4">
+      <div className="flex-1 flex items-center justify-center p-4" style={{ paddingTop: '110px' }}>
         <div className="max-w-2xl w-full">
           <div className="bg-white rounded-3xl shadow-2xl p-8 space-y-8">
             {/* Header */}
@@ -692,6 +756,18 @@ const HADQuestionnaire = () => {
                 <h2 className="text-xl font-semibold text-gray-800 leading-relaxed text-center">
                   {questions[current].text}
                 </h2>
+                {/* Voiceover repeat button */}
+                <div className="flex justify-center mt-2">
+                  <button
+                    type="button"
+                    onClick={() => speakQuestion(questions[current].text)}
+                    className="flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-700 rounded-xl hover:bg-purple-200 transition-all duration-300 text-sm font-medium shadow"
+                  >
+                    {/* Solo bocina sin ondas */}
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5L6 9H3v6h3l5 4V5z" /></svg>
+                    Escuchar pregunta
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -700,10 +776,16 @@ const HADQuestionnaire = () => {
               {currentOptions.map((option, index) => (
                 <button
                   key={index}
-                  onClick={() => handleAnswer(option.value)}
-                  className="bg-purple-500 text-white px-6 py-4 rounded-2xl hover:bg-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl font-medium text-lg"
+                  onClick={() => (!accessibilityMode || !isMobile) ? handleAnswer(option.value) : undefined}
+                  onTouchStart={accessibilityMode && isMobile ? (e) => { e.preventDefault(); handleOptionTouch(index, option.label, option.value); } : undefined}
+                  className={`bg-purple-500 text-white px-6 py-4 rounded-2xl transition-all duration-300 transform shadow-lg hover:shadow-xl font-medium text-lg ${accessibilityMode ? 'text-2xl py-8 px-8 hover:scale-105' : 'hover:bg-purple-600 hover:scale-105'} ${accessibilityMode && isMobile && focusedOption === index ? 'ring-4 ring-yellow-400 scale-105 bg-yellow-400/80 text-purple-900 font-extrabold' : ''}`}
+                  onMouseEnter={accessibilityMode && !isMobile ? () => speakText(option.label) : undefined}
+                  onMouseLeave={accessibilityMode && !isMobile ? () => synthRef.current.cancel() : undefined}
                 >
                   {option.label}
+                  {accessibilityMode && isMobile && focusedOption === index && (
+                    <span className="ml-2 text-yellow-900 text-base font-bold animate-pulse">(Toca de nuevo para seleccionar)</span>
+                  )}
                 </button>
               ))}
             </div>
