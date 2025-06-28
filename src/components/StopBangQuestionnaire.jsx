@@ -156,6 +156,26 @@ const StopBangQuestionnaire = () => {
   const progress = Math.round(((current + 1) / questions.length) * 100);
   const evaluation = evaluateStopBang(answers);
 
+  // --- ACCESIBILIDAD MÓVIL: Primer toque lee, segundo selecciona ---
+  const handleOptionTouch = (index, label, value) => {
+    if (focusedOption === index && lastTouchedOption === index) {
+      // Segundo toque: selecciona la opción
+      setLastTouchedOption(null);
+      setFocusedOption(null);
+      handleAnswer(value);
+    } else {
+      // Primer toque: lee la opción y la resalta
+      setFocusedOption(index);
+      setLastTouchedOption(index);
+      speakText(label);
+      if (touchTimeout.current) clearTimeout(touchTimeout.current);
+      touchTimeout.current = setTimeout(() => {
+        setFocusedOption(null);
+        setLastTouchedOption(null);
+      }, 2000);
+    }
+  };
+
   // Formulario de información del paciente
   if (showPatientInfo) {
     return (
