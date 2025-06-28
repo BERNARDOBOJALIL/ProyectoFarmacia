@@ -551,7 +551,13 @@ const HADQuestionnaire = () => {
                   className={`flex items-center justify-center gap-2 w-full sm:w-auto sm:px-4 sm:py-2 px-2 py-2 rounded-xl transition-all duration-300 font-semibold sm:text-lg text-base shadow ${accessibilityMode ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                   title="Activar/desactivar accesibilidad"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m0 14v1m8-8h-1M5 12H4m15.07-6.93l-.71.71M6.34 17.66l-.71.71m12.02 0l-.71-.71M6.34 6.34l-.71-.71M12 8a4 4 0 100 8 4 4 0 000-8z" /></svg>
+                  {/* Ícono de accesibilidad personalizado */}
+                  <img
+                    src="/1-a4575525.png"
+                    alt="Accesibilidad"
+                    className="h-7 w-7 sm:h-6 sm:w-6 object-contain"
+                    style={{ filter: accessibilityMode ? 'grayscale(0%)' : 'grayscale(60%)', opacity: accessibilityMode ? 1 : 0.7 }}
+                  />
                   <span className="hidden sm:inline">{accessibilityMode ? 'Accesibilidad ON' : 'Accesibilidad OFF'}</span>
                   <span className="inline sm:hidden text-xs">{accessibilityMode ? 'ON' : 'OFF'}</span>
                 </button>
@@ -853,7 +859,13 @@ const HADQuestionnaire = () => {
                 className={`flex items-center justify-center gap-2 w-full sm:w-auto sm:px-4 sm:py-2 px-2 py-2 rounded-xl transition-all duration-300 font-semibold sm:text-lg text-base shadow ${accessibilityMode ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                 title="Activar/desactivar accesibilidad"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m0 14v1m8-8h-1M5 12H4m15.07-6.93l-.71.71M6.34 17.66l-.71.71m12.02 0l-.71-.71M6.34 6.34l-.71-.71M12 8a4 4 0 100 8 4 4 0 000-8z" /></svg>
+                {/* Ícono de accesibilidad personalizado */}
+                <img
+                  src="/1-a4575525.png"
+                  alt="Accesibilidad"
+                  className="h-7 w-7 sm:h-6 sm:w-6 object-contain"
+                  style={{ filter: accessibilityMode ? 'grayscale(0%)' : 'grayscale(60%)', opacity: accessibilityMode ? 1 : 0.7 }}
+                />
                 <span className="hidden sm:inline">{accessibilityMode ? 'Accesibilidad ON' : 'Accesibilidad OFF'}</span>
                 <span className="inline sm:hidden text-xs">{accessibilityMode ? 'ON' : 'OFF'}</span>
               </button>

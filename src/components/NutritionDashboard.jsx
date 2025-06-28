@@ -130,12 +130,9 @@ const NutritionDashboard = () => {
         {/* Enhanced Header */}
         <div className="text-center mb-24">
           <div className="relative inline-block mb-8">
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-3xl blur-xl opacity-30 animate-pulse"></div>
-            <div className="relative bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 p-6 rounded-3xl shadow-2xl">
-              <Stethoscope className="w-12 h-12 text-white" />
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                <Star className="w-4 h-4 text-yellow-800" />
-              </div>
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 rounded-3xl blur-xl opacity-50 animate-pulse"></div>
+            <div className="relative bg-gradient-to-br from-blue-100 via-purple-200 to-pink-100 p-6 rounded-3xl shadow-2xl">
+              <Stethoscope className="w-12 h-12 text-blue-700" />
             </div>
           </div>
           
