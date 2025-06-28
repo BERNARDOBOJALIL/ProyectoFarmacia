@@ -193,21 +193,23 @@ const StopBangQuestionnaire = () => {
                   <p className="text-base text-gray-500">Evaluación de riesgo de apnea del sueño</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 sm:gap-3 gap-1">
                 <button
                   onClick={() => setAccessibilityMode((prev) => !prev)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 font-semibold text-lg shadow ${accessibilityMode ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                  className={`flex items-center gap-2 sm:px-4 sm:py-2 px-2 py-1 rounded-xl transition-all duration-300 font-semibold sm:text-lg text-base shadow ${accessibilityMode ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                   title="Activar/desactivar accesibilidad"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m0 14v1m8-8h-1M5 12H4m15.07-6.93l-.71.71M6.34 17.66l-.71.71m12.02 0l-.71-.71M6.34 6.34l-.71-.71M12 8a4 4 0 100 8 4 4 0 000-8z" /></svg>
-                  {accessibilityMode ? 'Accesibilidad ON' : 'Accesibilidad OFF'}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-6 sm:w-6 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m0 14v1m8-8h-1M5 12H4m15.07-6.93l-.71.71M6.34 17.66l-.71.71m12.02 0l-.71-.71M6.34 6.34l-.71-.71M12 8a4 4 0 100 8 4 4 0 000-8z" /></svg>
+                  <span className="hidden sm:inline">{accessibilityMode ? 'Accesibilidad ON' : 'Accesibilidad OFF'}</span>
+                  <span className="inline sm:hidden">{accessibilityMode ? 'ON' : 'OFF'}</span>
                 </button>
                 <button
                   onClick={goBackToHome}
-                  className="flex items-center gap-3 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl transition-all duration-300 font-semibold text-lg shadow"
+                  className="flex items-center gap-3 sm:px-6 sm:py-3 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl transition-all duration-300 font-semibold sm:text-lg text-base shadow"
                 >
-                  <Home className="w-6 h-6" />
-                  Volver al Inicio
+                  <Home className="w-6 h-6 sm:w-6 sm:h-6 w-5 h-5" />
+                  <span className="hidden sm:inline">Volver al Inicio</span>
+                  <span className="inline sm:hidden">Inicio</span>
                 </button>
               </div>
             </div>
@@ -309,21 +311,23 @@ const StopBangQuestionnaire = () => {
                 <p className="text-base text-gray-500">Evaluación de riesgo de apnea del sueño</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 sm:gap-3 gap-1">
               <button
                 onClick={() => setAccessibilityMode((prev) => !prev)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 font-semibold text-lg shadow ${accessibilityMode ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                className={`flex items-center gap-2 sm:px-4 sm:py-2 px-2 py-1 rounded-xl transition-all duration-300 font-semibold sm:text-lg text-base shadow ${accessibilityMode ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                 title="Activar/desactivar accesibilidad"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m0 14v1m8-8h-1M5 12H4m15.07-6.93l-.71.71M6.34 17.66l-.71.71m12.02 0l-.71-.71M6.34 6.34l-.71-.71M12 8a4 4 0 100 8 4 4 0 000-8z" /></svg>
-                {accessibilityMode ? 'Accesibilidad ON' : 'Accesibilidad OFF'}
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-6 sm:w-6 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m0 14v1m8-8h-1M5 12H4m15.07-6.93l-.71.71M6.34 17.66l-.71.71m12.02 0l-.71-.71M6.34 6.34l-.71-.71M12 8a4 4 0 100 8 4 4 0 000-8z" /></svg>
+                <span className="hidden sm:inline">{accessibilityMode ? 'Accesibilidad ON' : 'Accesibilidad OFF'}</span>
+                <span className="inline sm:hidden">{accessibilityMode ? 'ON' : 'OFF'}</span>
               </button>
               <button
                 onClick={goBackToHome}
-                className="flex items-center gap-3 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl transition-all duration-300 font-semibold text-lg shadow"
+                className="flex items-center gap-3 sm:px-6 sm:py-3 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl transition-all duration-300 font-semibold sm:text-lg text-base shadow"
               >
-                <Home className="w-6 h-6" />
-                Volver al Inicio
+                <Home className="w-6 h-6 sm:w-6 sm:h-6 w-5 h-5" />
+                <span className="hidden sm:inline">Volver al Inicio</span>
+                <span className="inline sm:hidden">Inicio</span>
               </button>
             </div>
           </div>
