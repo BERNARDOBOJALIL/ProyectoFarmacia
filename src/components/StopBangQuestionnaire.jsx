@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   CheckCircle, AlertCircle, Download, ArrowLeft, Volume2,
-  Coffee, Eye, Heart, Weight, Calendar, Ruler, User, Home, Moon
+  Coffee, Eye, Heart, Weight, Calendar, Ruler, User, Home, Moon, Mail
 } from 'lucide-react';
 import { evaluateStopBang } from '../utils/stopbangEvaluator';
+import { sendEmailWithAttachment, generateCSVString, createCSVAttachment } from '../utils/emailService';
 
 const questions = [
   { id: 'snoring', text: '¿Ronca fuerte?', category: 'S - Snoring', icon: Volume2 },
@@ -31,6 +32,11 @@ const StopBangQuestionnaire = () => {
   const [accessibilityMode, setAccessibilityMode] = useState(false);
   const [focusedOption, setFocusedOption] = useState(null); // Para feedback táctil
   const [lastTouchedOption, setLastTouchedOption] = useState(null); // Para doble toque
+  
+  // Estados para envío de correo
+  const [isEmailSending, setIsEmailSending] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  
   const synthRef = useRef(window.speechSynthesis);
   const utteranceRef = useRef(null);
   const touchTimeout = useRef(null);
@@ -132,6 +138,80 @@ const StopBangQuestionnaire = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // Función para enviar por correo directamente
+  const sendEmail = async () => {
+    setIsEmailSending(true);
+    
+    try {
+      // Debug: verificar las respuestas antes del envío
+      console.log('StopBang - Respuestas antes del envío:', answers);
+      
+      const evaluation = evaluateStopBang(answers);
+      const fecha = new Date().toISOString().slice(0, 10);
+      
+      // Preparar datos para el CSV
+      const csvData = {
+        patient_name: patientInfo.name,
+        patient_age: patientInfo.age,
+        patient_gender: patientInfo.gender,
+        ...answers,
+        score: evaluation.score,
+        risk_level: evaluation.riskLevel,
+        reason: evaluation.reason,
+        date: fecha,
+      };
+
+      // Generar CSV string y archivo
+      const csvString = generateCSVString(csvData);
+      const csvFile = createCSVAttachment(csvString, `${patientInfo.name}_${fecha}_stopbang.csv`);
+
+      // Preparar parámetros para EmailJS
+      const templateParams = {
+        patient_name: patientInfo.name,
+        patient_age: patientInfo.age,
+        patient_gender: patientInfo.gender,
+        questionnaire_type: 'STOP-Bang',
+        date: fecha,
+        total_score: evaluation.score,
+        risk_level: evaluation.riskLevel,
+        risk_description: evaluation.reason,
+        risk_level_class: evaluation.score <= 2 ? 'low' : evaluation.score <= 4 ? 'moderate' : 'high',
+        message: 'Resultados del cuestionario STOP-Bang completado por el paciente.',
+        csv_data: csvString, // Mantener CSV como texto de respaldo
+        // Agregar respuestas individuales para mostrar en la plantilla
+        snoring: answers.snoring === 'Yes' ? 'Sí' : 'No',
+        tired: answers.tired === 'Yes' ? 'Sí' : 'No',
+        observed: answers.observed === 'Yes' ? 'Sí' : 'No',
+        pressure: answers.pressure === 'Yes' ? 'Sí' : 'No',
+        bmi: answers.bmi === 'Yes' ? 'Sí' : 'No',
+        age: answers.age === 'Yes' ? 'Sí' : 'No',
+        neck: answers.neck === 'Yes' ? 'Sí' : 'No',
+        gender: answers.gender === 'Yes' ? 'Sí' : 'No',
+        if_had: false,
+        if_stopbang: true,
+        if_tfeq: false
+      };
+
+      const result = await sendEmailWithAttachment(templateParams);
+      
+      if (result.success) {
+        setEmailSent(true);
+        alert('¡Correo enviado exitosamente al médico con todos los datos del cuestionario!');
+        setTimeout(() => {
+          setEmailSent(false);
+        }, 3000);
+      } else {
+        alert('Error al enviar el correo. Por favor intente nuevamente.');
+        console.error('Error:', result.error);
+      }
+    } catch (error) {
+      alert('Error al enviar el correo. Por favor intente nuevamente.');
+      console.error('Error:', error);
+    } finally {
+      setIsEmailSending(false);
+    }
   };
 
   const goBack = () => current > 0 && setCurrent(current - 1);
@@ -399,23 +479,40 @@ const StopBangQuestionnaire = () => {
                 
               </div>
 
-              <div className="flex gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <button
                   onClick={downloadCSV}
-                  className="flex-1 bg-blue-600 text-white px-6 py-4 rounded-2xl hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
+                  className="bg-blue-600 text-white px-6 py-4 rounded-2xl hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
                 >
                   <Download className="w-5 h-5" />
                   Descargar Resultados
                 </button>
                 <button
+                  onClick={sendEmail}
+                  className="bg-green-600 text-white px-6 py-4 rounded-2xl hover:bg-green-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
+                  disabled={isEmailSending}
+                >
+                  {isEmailSending ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="w-5 h-5" />
+                      Enviar al Médico
+                    </>
+                  )}
+                </button>
+                <button
                   onClick={restart}
-                  className="flex-1 bg-gray-600 text-white px-6 py-4 rounded-2xl hover:bg-gray-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
+                  className="bg-gray-600 text-white px-6 py-4 rounded-2xl hover:bg-gray-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
                 >
                   Reiniciar Cuestionario
                 </button>
                 <button
                   onClick={goBackToHome}
-                  className="flex-1 bg-purple-600 text-white px-6 py-4 rounded-2xl hover:bg-purple-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
+                  className="bg-purple-600 text-white px-6 py-4 rounded-2xl hover:bg-purple-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
                 >
                   <Home className="w-5 h-5" />
                   Volver al Inicio

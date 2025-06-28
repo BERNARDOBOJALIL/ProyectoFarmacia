@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  CheckCircle, AlertCircle, Download, ArrowLeft, Utensils, Scale, Heart, Brain, User, Home
+  CheckCircle, AlertCircle, Download, ArrowLeft, Utensils, Scale, Heart, Brain, User, Home, Mail
 } from 'lucide-react';
+import { sendEmailWithAttachment, generateCSVString, createCSVAttachment } from '../utils/emailService';
 
 const questions = [
   {
@@ -221,6 +222,11 @@ const TFEQQuestionnaire = () => {
   const [accessibilityMode, setAccessibilityMode] = useState(false);
   const [focusedOption, setFocusedOption] = useState(null); // Para feedback táctil
   const [lastTouchedOption, setLastTouchedOption] = useState(null); // Para doble toque
+  
+  // Estados para envío de correo
+  const [isEmailSending, setIsEmailSending] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  
   const synthRef = useRef(window.speechSynthesis);
   const utteranceRef = useRef(null);
   const touchTimeout = useRef(null);
@@ -377,6 +383,103 @@ const TFEQQuestionnaire = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // Función para enviar por correo directamente
+  const sendEmail = async () => {
+    setIsEmailSending(true);
+    
+    try {
+      const fecha = new Date().toISOString().slice(0, 10);
+      const { cognitiveScore, uncontrolledScore, emotionalScore } = calculateScores();
+      
+      // Preparar datos para el CSV
+      const csvData = {
+        patient_name: patientInfo.name,
+        patient_age: patientInfo.age,
+        patient_gender: patientInfo.gender,
+        ...answers,
+        cognitive_restraint: cognitiveScore,
+        uncontrolled_eating: uncontrolledScore,
+        emotional_eating: emotionalScore,
+        date: fecha,
+      };
+
+      // Generar CSV string y archivo
+      const csvString = generateCSVString(csvData);
+      const csvFile = createCSVAttachment(csvString, `${patientInfo.name}_${fecha}_tfeq.csv`);
+
+      // Preparar parámetros para EmailJS
+      const templateParams = {
+        patient_name: patientInfo.name,
+        patient_age: patientInfo.age,
+        patient_gender: patientInfo.gender,
+        questionnaire_type: 'TFEQ-R18',
+        date: fecha,
+        cognitive_restraint_score: cognitiveScore.toFixed(2),
+        cognitive_restraint_description: getScoreDescription(cognitiveScore, 'cognitive'),
+        uncontrolled_eating_score: uncontrolledScore.toFixed(2),
+        uncontrolled_eating_description: getScoreDescription(uncontrolledScore, 'uncontrolled'),
+        emotional_eating_score: emotionalScore.toFixed(2),
+        emotional_eating_description: getScoreDescription(emotionalScore, 'emotional'),
+        message: 'Resultados del cuestionario TFEQ-R18 completado por el paciente.',
+        csv_data: csvString, // Mantener CSV como texto de respaldo
+        // Agregar respuestas individuales para mostrar en la plantilla
+        q1: answers.q1 || 1,
+        q2: answers.q2 || 1,
+        q3: answers.q3 || 1,
+        q4: answers.q4 || 1,
+        q5: answers.q5 || 1,
+        q6: answers.q6 || 1,
+        q7: answers.q7 || 1,
+        q8: answers.q8 || 1,
+        q9: answers.q9 || 1,
+        q10: answers.q10 || 1,
+        q11: answers.q11 || 1,
+        q12: answers.q12 || 1,
+        q13: answers.q13 || 1,
+        q14: answers.q14 || 1,
+        q15: answers.q15 || 1,
+        q16: answers.q16 || 1,
+        q17: answers.q17 || 1,
+        q18: answers.q18 || 1,
+        if_had: false,
+        if_stopbang: false,
+        if_tfeq: true
+      };
+
+      const result = await sendEmailWithAttachment(templateParams);
+      
+      if (result.success) {
+        setEmailSent(true);
+        alert('¡Correo enviado exitosamente al médico con todos los datos del cuestionario!');
+        setTimeout(() => {
+          setEmailSent(false);
+        }, 3000);
+      } else {
+        alert('Error al enviar el correo. Por favor intente nuevamente.');
+        console.error('Error:', result.error);
+      }
+    } catch (error) {
+      alert('Error al enviar el correo. Por favor intente nuevamente.');
+      console.error('Error:', error);
+    } finally {
+      setIsEmailSending(false);
+    }
+  };
+
+  // Función auxiliar para descripciones de puntuación
+  const getScoreDescription = (score, type) => {
+    switch(type) {
+      case 'cognitive':
+        return score >= 3.0 ? 'Alto control cognitivo' : score >= 2.0 ? 'Control cognitivo moderado' : 'Bajo control cognitivo';
+      case 'uncontrolled':
+        return score >= 3.0 ? 'Alta alimentación descontrolada' : score >= 2.0 ? 'Alimentación descontrolada moderada' : 'Baja alimentación descontrolada';
+      case 'emotional':
+        return score >= 3.0 ? 'Alta alimentación emocional' : score >= 2.0 ? 'Alimentación emocional moderada' : 'Baja alimentación emocional';
+      default:
+        return '';
+    }
   };
 
   const goBack = () => current > 0 && setCurrent(current - 1);
@@ -707,23 +810,40 @@ const TFEQQuestionnaire = () => {
                 </div>
               </div>
 
-              <div className="flex gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <button
                   onClick={downloadCSV}
-                  className="flex-1 bg-green-600 text-white px-6 py-4 rounded-2xl hover:bg-green-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
+                  className="bg-green-600 text-white px-6 py-4 rounded-2xl hover:bg-green-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
                 >
                   <Download className="w-5 h-5" />
                   Descargar Resultados
                 </button>
                 <button
+                  onClick={sendEmail}
+                  className="bg-purple-600 text-white px-6 py-4 rounded-2xl hover:bg-purple-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
+                  disabled={isEmailSending}
+                >
+                  {isEmailSending ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="w-5 h-5" />
+                      Enviar al Médico
+                    </>
+                  )}
+                </button>
+                <button
                   onClick={restart}
-                  className="flex-1 bg-gray-600 text-white px-6 py-4 rounded-2xl hover:bg-gray-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
+                  className="bg-gray-600 text-white px-6 py-4 rounded-2xl hover:bg-gray-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
                 >
                   Reiniciar Cuestionario
                 </button>
                 <button
                   onClick={goBackToHome}
-                  className="flex-1 bg-blue-600 text-white px-6 py-4 rounded-2xl hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
+                  className="bg-blue-600 text-white px-6 py-4 rounded-2xl hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
                 >
                   <Home className="w-5 h-5" />
                   Volver al Inicio
