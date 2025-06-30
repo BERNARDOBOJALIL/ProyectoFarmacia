@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  CheckCircle, AlertCircle, Download, ArrowLeft, Utensils, Scale, Heart, Brain, User, Home, Mail
+  CheckCircle, AlertCircle, Download, ArrowLeft, Utensils, Scale, Heart, Brain, User, Home, Mail, Clock
 } from 'lucide-react';
 import { sendEmailWithAttachment, generateCSVString, createCSVAttachment } from '../utils/emailService';
 
 const questions = [
   {
     id: 'q1',
-    text: 'Cuando huelo un bistec chisporroteando o un trozo de carne jugosa, me resulta muy difícil evitar comer, incluso si acabo de terminar una comida.',
+    text: 'Cuando huelo un bistec asándose o un trozo de carne jugosa, me resulta muy difícil evitar comer, incluso si acabo de terminar una comida.',
     category: 'Alimentación Descontrolada',
     icon: Utensils,
     scale: 'uncontrolled',
@@ -156,8 +156,8 @@ const getAnswerOptions = (questionType, questionId) => {
     case 'standard':
       return [
         { value: 4, label: 'Definitivamente cierto' },
-        { value: 3, label: 'Principalmente cierto' },
-        { value: 2, label: 'Principalmente falso' },
+        { value: 3, label: 'Parcialmente cierto' },
+        { value: 2, label: 'Parcialmente falso' },
         { value: 1, label: 'Definitivamente falso' }
       ];
     case 'frequency':
@@ -200,8 +200,8 @@ const getAnswerOptions = (questionType, questionId) => {
     default:
       return [
         { value: 4, label: 'Definitivamente cierto' },
-        { value: 3, label: 'Principalmente cierto' },
-        { value: 2, label: 'Principalmente falso' },
+        { value: 3, label: 'Parcialmente cierto' },
+        { value: 2, label: 'Parcialmente falso' },
         { value: 1, label: 'Definitivamente falso' }
       ];
   }
@@ -825,19 +825,19 @@ const TFEQQuestionnaire = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <button
                   onClick={downloadCSV}
-                  className="bg-green-600 text-white px-6 py-4 rounded-2xl hover:bg-green-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
+                  className="bg-indigo-300 text-indigo-800 px-6 py-4 rounded-2xl hover:bg-indigo-400 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
                 >
                   <Download className="w-5 h-5" />
                   Descargar Resultados
                 </button>
                 <button
                   onClick={sendEmail}
-                  className="bg-purple-600 text-white px-6 py-4 rounded-2xl hover:bg-purple-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
+                  className="bg-violet-300 text-violet-800 px-6 py-4 rounded-2xl hover:bg-violet-400 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
                   disabled={isEmailSending}
                 >
                   {isEmailSending ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-4 h-4 border-2 border-violet-800 border-t-transparent rounded-full animate-spin"></div>
                       Enviando...
                     </>
                   ) : (
@@ -849,13 +849,13 @@ const TFEQQuestionnaire = () => {
                 </button>
                 <button
                   onClick={restart}
-                  className="bg-gray-600 text-white px-6 py-4 rounded-2xl hover:bg-gray-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
+                  className="bg-fuchsia-300 text-fuchsia-800 px-6 py-4 rounded-2xl hover:bg-fuchsia-400 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
                 >
                   Reiniciar Cuestionario
                 </button>
                 <button
                   onClick={goBackToHome}
-                  className="bg-blue-600 text-white px-6 py-4 rounded-2xl hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
+                  className="bg-rose-300 text-rose-800 px-6 py-4 rounded-2xl hover:bg-rose-400 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl"
                 >
                   <Home className="w-5 h-5" />
                   Volver al Inicio
